@@ -60,7 +60,7 @@ def ReadCommissioningDate():
 
 # Operating Data
 
-
+# m^3
 def ReadTotalWaterVolume():
     data = HTTPGetRequest('GET', '/api/rest/2800')
     my_json = data.decode('utf8').replace("'", '"')
@@ -73,46 +73,54 @@ def ReadTotalWaterVolume():
 
 # Water usage statistics
 
-# TODO: function not finished
 def ReadDayWaterUsage(day: int, month: int, year: int):
     dateToPass = "{:02x}".format(day) + "{:02x}".format(month) + "{:04x}".format(year)
     body = '/api/rest/FB00' + dateToPass
-    print(body)
     data = HTTPGetRequest('GET', body)
-    print(data)
     my_json = data.decode('utf8').replace("'", '"')
     data = json.loads(my_json)
     water = data["data"]
-    return water
+    hour00_03 = int(water[0:8], 16)
+    hour03_06 = int(water[9:16], 16)
+    hour06_09 = int(water[17:24], 16)
+    hour09_12 = int(water[25:32], 16)
+    hour12_15 = int(water[33:40], 16)
+    hour15_18 = int(water[41:48], 16)
+    hour18_21 = int(water[49:56], 16)
+    hour21_24 = int(water[57:64], 16)
+    return [hour00_03, hour03_06, hour06_09, hour09_12, hour12_15, hour15_18, hour18_21, hour21_24]
 
 
-# TODO: function not finished
 def ReadWeekWaterUsage(kw: int, year: int):
     dateToPass = "{:02x}".format(kw) + "{:04x}".format(year)
     body = '/api/rest/FC00' + dateToPass
-    print(body)
     data = HTTPGetRequest('GET', body)
-    print(data)
     my_json = data.decode('utf8').replace("'", '"')
     data = json.loads(my_json)
     water = data["data"]
-    return water
+    monday = int(water[0:8], 16)
+    tuesday = int(water[9:16], 16)
+    wednesday = int(water[17:24], 16)
+    thursday = int(water[25:32], 16)
+    friday = int(water[33:40], 16)
+    saturday = int(water[41:48], 16)
+    sunday = int(water[49:56], 16)
+    return [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
 
 
-# TODO: function not finished
 def ReadMonthWaterUsage(month: int, year: int):
     dateToPass = "{:02x}".format(month) + "{:04x}".format(year)
     body = '/api/rest/FD00' + dateToPass
-    print(body)
     data = HTTPGetRequest('GET', body)
-    print(data)
     my_json = data.decode('utf8').replace("'", '"')
     data = json.loads(my_json)
     water = data["data"]
-    return water
+    return_value = []
+    for i in range(0, len(str(water))//8):
+        return_value += [int(water[i*8:(i*8)+8], 16)]
+    return return_value
 
 
-# TODO: function not finished
 def ReadYearWaterUsage(year: int):
     dateToPass = "{:04x}".format(year)
     body = '/api/rest/FE00' + dateToPass
@@ -122,38 +130,39 @@ def ReadYearWaterUsage(year: int):
     my_json = data.decode('utf8').replace("'", '"')
     data = json.loads(my_json)
     water = data["data"]
-    return water
+    return_value = []
+    for i in range(0, 12):
+        return_value += [int(water[i * 8:(i * 8) + 8], 16)]
+    return return_value
+
 
 # Settings
 
-# TODO: function not finished
 def ReadSleepModeDuration():
     data = HTTPGetRequest('GET', '/api/rest/6600')
-    print(data)
     my_json = data.decode('utf8').replace("'", '"')
     data = json.loads(my_json)
     water = data["data"]
-    return water
+    return int(water, 16)
 
 
-# TODO: function not finished
 def ReadLearningModeState():
     data = HTTPGetRequest('GET', '/api/rest/6400')
-    print(data)
     my_json = data.decode('utf8').replace("'", '"')
     data = json.loads(my_json)
     water = data["data"]
-    return water
+    learnmodus_activ = bool(int(water[0:2],16))
+    restWater = int(water[2:4])
+    return learnmodus_activ, restWater
 
 
-# TODO: function not finished
+# 0-no automatic check; 1-automatic check with notification; 2-automatic check with notification and closing
 def ReadLeackageCheckState():
     data = HTTPGetRequest('GET', '/api/rest/6500')
-    print(data)
     my_json = data.decode('utf8').replace("'", '"')
     data = json.loads(my_json)
     water = data["data"]
-    return water
+    return int(water)
 
 
 def ReadDateAndTime():
@@ -164,6 +173,7 @@ def ReadDateAndTime():
     data = str(int(data[0:2],16)) + '.' + str(int(data[2:4],16)) + '.' + str(int(data[4:6],16)) + ' - ' + str(int(data[6:8],16)) + ':' + str(int(data[8:10],16)) + ':' + str(int(data[10:12],16))
     return data
 
+
 # TODO: function not finished
 def ReadOutOfHomeTime():
     data = HTTPGetRequest('GET', '/api/rest/6000')
@@ -172,5 +182,4 @@ def ReadOutOfHomeTime():
     data = json.loads(my_json)
     data = str(int(data["data"]),16)
     return data
-
-print(ReadDateAndTime())
+print(ReadOutOfHomeTime())
